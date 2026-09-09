@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+
+# 실행 시 생성되는 상태/결과 파일 (소스 아님)
+scan_results.csv
+signals_history.csv
+orders_log.csv
+backtest_*.csv
+
+# 절대 커밋하면 안 되는 자격 증명
+.env
+*.pem
+*.key
+.claude/

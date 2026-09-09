@@ -1,0 +1,11 @@
+.venv
+__pycache__
+*.pyc
+.git
+.env
+scan_results.csv
+signals_history.csv
+orders_log.csv
+backtest_legacy_trades.csv
+backtest_rsi2_trend_trades.csv
+backtest_summary.csv
