@@ -7,11 +7,11 @@
 
 만들면서 나온 결과들(수수료가 총수익의 40%를 먹던 것, 백테스트와 포트폴리오 시뮬레이션의
 차이, 자본 규모가 수익률에 거의 영향을 주지 않는다는 것, 표본 편차가 설정 차이보다 9배 크다는 것)은
-블로그 3부작으로 따로 정리했다.
+블로그 3부작 "Claude Code와 토스증권 API로 자동매매 시작하기"로 정리했다.
 
-1. [강의를 따라 하다 전략부터 갈아엎었다](https://benyco-dev.github.io/auto-trading-1-strategy/) — 청산 규칙이 없는 전략, RSI(2)+ATR로 교체한 근거
-2. [백테스트는 22%였는데 수수료를 넣으니 4%가 됐다](https://benyco-dev.github.io/auto-trading-2-commission/) — 백테스트 vs 포트폴리오 시뮬레이션, 수수료가 총수익의 40%
-3. [표본 편차가 설정 차이보다 9배 컸다](https://benyco-dev.github.io/auto-trading-3-variance/) — 자본 규모의 영향, 백테스트 숫자를 어디까지 믿을 것인가
+1. [환경 구성](https://benyco-dev.github.io/auto-trading-1-setup/) — Claude Code + 토스증권 API + GCP로 무인 운영 환경을 세우고, 전략을 내 목표에 맞게 바꾸기까지
+2. [수수료의 함정](https://benyco-dev.github.io/auto-trading-2-commission/) — 백테스트 vs 포트폴리오 시뮬레이션, 수수료가 총수익의 40%를 먹던 발견
+3. [마무리](https://benyco-dev.github.io/auto-trading-3-wrapup/) — 자본 규모의 영향, 표본 편차가 설정 차이보다 9배 크다는 것
 
 ---
 
