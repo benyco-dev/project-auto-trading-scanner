@@ -14,3 +14,7 @@ backtest_*.csv
 *.pem
 *.key
 .claude/
+
+# 실행 산출물 통째 차단 (신규 파일 누락 방지)
+*.csv
+*.log
