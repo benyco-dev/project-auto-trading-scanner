@@ -7,6 +7,7 @@ import pandas as pd
 
 from strategies import LegacyParams, RSI2Params, build_params, legacy_latest_signal, rsi2_trend_trades
 from toss.exit_positions import exit_reason, open_positions
+from toss.place_orders import select_candidates
 
 
 def _df(closes):
@@ -74,10 +75,41 @@ def test_exit_rules():
     assert exit_reason(df, pos, 5, 10, today) is None
 
 
+def _sig(ticker, d, entry, stop):
+    return {"ticker": ticker, "date": d, "strategy": "rsi2_trend",
+            "entry_price": str(entry), "stop_price": str(stop)}
+
+
+def test_stale_signals_do_not_starve_fresh_ones():
+    # 옛 시그널이 손절폭이 제일 좁아도 새 시그널 자리를 뺏으면 안 된다.
+    # (모의매매 첫 주: 손절폭 $1짜리 DOC 옛 시그널이 5자리를 매일 점령 → 8거래일 매수 0건)
+    today = date(2026, 9, 19)
+    old = [_sig(f"OLD{i}", "2026-09-09", 20.0, 19.0) for i in range(5)]   # 손절폭 1.0
+    new = [_sig("NEW", "2026-09-18", 100.0, 95.0)]                       # 손절폭 5.0
+    picked = select_candidates(pd.DataFrame(old + new), set(), today, max_age_days=3, max_orders=5)
+    assert list(picked["ticker"]) == ["NEW"], picked
+
+
+def test_one_position_per_ticker():
+    # 같은 종목 시그널이 여러 날 나오면 최신 하나만, 보유 중이면 아예 제외.
+    today = date(2026, 9, 19)
+    df = pd.DataFrame([
+        _sig("RF", "2026-09-16", 28.47, 26.90),
+        _sig("RF", "2026-09-17", 28.48, 26.94),
+        _sig("HELD", "2026-09-18", 50.0, 48.0),
+        _sig("BAX", "2026-09-18", 22.8, 20.82),
+    ])
+    picked = select_candidates(df, {"HELD"}, today, max_age_days=3, max_orders=5)
+    assert sorted(picked["ticker"]) == ["BAX", "RF"], picked
+    assert picked.set_index("ticker").loc["RF", "date"] == "2026-09-17"
+
+
 if __name__ == "__main__":
     test_legacy_ignores_nan_disparity()
     test_rsi2_stop_below_entry()
     test_build_params_picks_strategy()
     test_open_positions_nets_buys_and_sells()
     test_exit_rules()
+    test_stale_signals_do_not_starve_fresh_ones()
+    test_one_position_per_ticker()
     print("all checks passed")

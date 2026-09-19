@@ -53,6 +53,36 @@ def load_pending(signals_path: str, orders_log_path: str) -> pd.DataFrame:
     return signals[mask]
 
 
+def select_candidates(pending: pd.DataFrame, held: set[str], today: date,
+                      max_age_days: int, max_orders: int | None) -> pd.DataFrame:
+    """오늘 주문할 시그널을 고른다. 걸러내는 순서가 결과를 바꾸니 순서를 지킬 것."""
+    # 1) 오래된 시그널을 먼저 뺀다. 자르기(4) 뒤에 빼면 손절폭 좁은 옛 시그널이
+    #    매일 자리를 차지했다 버려져서 새 시그널 차례가 영영 안 온다
+    #    (모의매매 첫 주에 실제로 8거래일간 매수 0건이었다).
+    ages = pending["date"].map(lambda d: (today - date.fromisoformat(d)).days)
+    pending = pending[ages <= max_age_days]
+
+    # 2) 종목당 포지션 1개. RSI(2)<5가 며칠 이어지면 같은 종목 시그널이 매일 새로
+    #    생겨서, 두면 한 종목을 여러 번 사 리스크가 2~3배로 쌓인다. 최신 시그널만
+    #    남기고 이미 보유한 종목은 뺀다 (백테스트도 청산 전 재진입을 막는다).
+    pending = (
+        pending[~pending["ticker"].isin(held)]
+        .sort_values("date", ascending=False)
+        .drop_duplicates("ticker")
+    )
+
+    # 3) 손절폭 좁은 순. 트레이드당 리스크는 --risk-pct로 같으니 손절폭이 좁을수록
+    #    같은 리스크에 자본이 더 투입된다 (현금이 놀지 않음).
+    # ponytail: 손절폭이 좁으면 잘 털리기도 한다. 승률이 떨어지면 넓은 순과 비교해볼 것.
+    pending = pending.assign(
+        _stop_dist=pd.to_numeric(pending["entry_price"], errors="coerce")
+        - pd.to_numeric(pending["stop_price"], errors="coerce")
+    ).sort_values("_stop_dist", na_position="last")
+
+    # 4) 하루 최대 종목 수
+    return pending.head(max_orders) if max_orders else pending
+
+
 def append_order_log(path: str, row: dict) -> None:
     df = pd.DataFrame([row])
     write_header = not os.path.exists(path)
@@ -100,24 +130,17 @@ def main() -> None:
         print(f"{args.signals_file} 이 없습니다. run_and_log.py를 먼저 실행하세요.")
         return
 
-    pending = load_pending(args.signals_file, args.orders_log)
+    today = datetime.now(timezone.utc).date()
+    pending = select_candidates(
+        load_pending(args.signals_file, args.orders_log),
+        held={p["ticker"] for p in open_positions(args.orders_log)},
+        today=today,
+        max_age_days=args.max_age_days,
+        max_orders=args.max_orders,
+    )
     if pending.empty:
         print("주문 대기 중인 새 시그널이 없습니다.")
         return
-
-    # 손절폭(진입가-손절가)이 좁은 순. 리스크 기반 사이징에서는 어느 종목이든
-    # 트레이드당 리스크가 --risk-pct로 동일하므로, 손절폭이 좁을수록 같은 리스크에
-    # 더 많은 자본이 투입된다 (현금이 놀지 않음). 자본이 적어 --max-orders로
-    # 일부만 담을 때 알파벳 순으로 잘리는 걸 막는다.
-    # ponytail: 손절폭이 좁으면 그만큼 잘 털리기도 한다. 승률이 떨어지면
-    # 반대로(넓은 순) 뒤집어서 비교해볼 것.
-    pending = pending.assign(
-        _stop_dist=pd.to_numeric(pending["entry_price"], errors="coerce")
-        - pd.to_numeric(pending["stop_price"], errors="coerce")
-    ).sort_values("_stop_dist", na_position="last")
-
-    if args.max_orders:
-        pending = pending.head(args.max_orders)
 
     mode = "실주문" if args.live else ("모의매매(paper)" if args.paper else "미리보기(dry-run)")
     print(f"[{mode}] 대상 시그널 {len(pending)}건 (계좌 {args.account_seq})\n")
@@ -139,13 +162,7 @@ def main() -> None:
         equity_basis = cash
         print(f"매수가능금액: {cash:,.2f} {args.currency}\n")
 
-    today = datetime.now(timezone.utc).date()
     for _, row in pending.iterrows():
-        age = (today - date.fromisoformat(row["date"])).days
-        if age > args.max_age_days:
-            print(f"  [건너뜀] {row['ticker']} {row['date']}: {age}일 지난 시그널 "
-                  f"(지정가 {row['entry_price']}는 시그널 당일 종가라 현재 시세와 다를 수 있음).")
-            continue
         if args.risk_pct is not None:
             # 스캔 때 박힌 수량 대신 지금 자본으로 다시 계산한다.
             qty = position_size(
