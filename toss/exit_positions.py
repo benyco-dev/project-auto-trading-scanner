@@ -68,22 +68,43 @@ def open_positions(orders_log_path: str) -> list[dict]:
     return positions
 
 
+def ledger_cash_flow(orders_log_path: str) -> float:
+    """주문 로그 기준 누적 현금 흐름 = 매도대금 합 - 매수대금 합."""
+    if not os.path.exists(orders_log_path):
+        return 0.0
+    o = pd.read_csv(orders_log_path)
+    if o.empty:
+        return 0.0
+    amt = o["quantity"] * o["price"]
+    side = o["side"] if "side" in o.columns else pd.Series("BUY", index=o.index)
+    return float(amt[side == "SELL"].sum() - amt[side == "BUY"].sum())
+
+
 def exit_reason(df: pd.DataFrame, pos: dict, exit_sma: int, max_hold_days: int, today: date) -> tuple[str, float] | None:
     """청산해야 하면 (사유, 기준가), 아니면 None."""
-    close, low = df["Close"], df["Low"]
-    last_close = round(float(close.iloc[-1]), 2)  # 소수점 그대로 보내면 거부될 수 있다
+    # 매도는 미국장 개장 15분 뒤에 돈다. 그때 yfinance 마지막 봉은 "오늘 15분짜리
+    # 미완성 봉"이다 (모의매매 첫 주 매도가가 전부 전일 종가가 아니라 당일 장중
+    # 가격이었다). 판단 기준을 나눈다:
+    #   손절 — 오늘 장중 저가까지 본다. 갭하락이면 하루라도 빨리 나가야 한다.
+    #   익절·시간 — 백테스트처럼 완성된 일봉 종가로만 판단한다.
+    price_now = round(float(df["Close"].iloc[-1]), 2)  # 주문 지정가 (소수점 그대로면 거부될 수 있다)
 
-    if pos["stop_price"] is not None and float(low.iloc[-1]) <= pos["stop_price"]:
-        return "stop", last_close
+    if pos["stop_price"] is not None and float(df["Low"].iloc[-1]) <= pos["stop_price"]:
+        return "stop", price_now
 
-    sma = close.rolling(exit_sma).mean().iloc[-1]
-    if pd.notna(sma) and last_close > float(sma):
-        return "target_sma", last_close
+    done = df[df.index.date < today]["Close"]
+    if done.empty:
+        return None
+
+    sma = done.rolling(exit_sma).mean().iloc[-1]
+    if pd.notna(sma) and float(done.iloc[-1]) > float(sma):
+        return "target_sma", price_now
 
     if pos["filled_at"]:
-        held_days = (today - date.fromisoformat(pos["filled_at"])).days
-        if held_days >= max_hold_days:
-            return f"time({held_days}일)", last_close
+        # 백테스트와 같게 달력일이 아니라 거래일(봉 개수)로 센다.
+        held = int((done.index.date >= date.fromisoformat(pos["filled_at"])).sum())
+        if held >= max_hold_days:
+            return f"time({held}거래일)", price_now
 
     return None
 

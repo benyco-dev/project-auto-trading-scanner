@@ -32,7 +32,7 @@ from datetime import date, datetime, timezone
 import pandas as pd
 
 from strategies import position_size
-from toss.exit_positions import open_positions
+from toss.exit_positions import ledger_cash_flow, open_positions
 from toss.toss_client import TossClient
 
 SIGNALS_FILE = "signals_history.csv"
@@ -61,6 +61,13 @@ def select_candidates(pending: pd.DataFrame, held: set[str], today: date,
     #    (모의매매 첫 주에 실제로 8거래일간 매수 0건이었다).
     ages = pending["date"].map(lambda d: (today - date.fromisoformat(d)).days)
     pending = pending[ages <= max_age_days]
+
+    # 1-b) 가장 최근 스캔의 시그널만 쓴다. 백테스트는 시그널이 뜬 그날만 진입한다.
+    #      이틀 전 시그널은 그사이 RSI가 회복돼 진입 조건이 이미 깨졌을 수 있다
+    #      (조건이 계속 유지되면 오늘 스캔에 새 시그널로 다시 올라온다).
+    #      max_age_days는 스캔이 며칠 실패했을 때 옛 스캔으로 매수하지 않게 막는 역할.
+    if not pending.empty:
+        pending = pending[pending["date"] == pending["date"].max()]
 
     # 2) 종목당 포지션 1개. RSI(2)<5가 며칠 이어지면 같은 종목 시그널이 매일 새로
     #    생겨서, 두면 한 종목을 여러 번 사 리스크가 2~3배로 쌓인다. 최신 시그널만
@@ -149,18 +156,19 @@ def main() -> None:
 
     # 시그널마다 계좌 전액 기준으로 사이징되기 때문에, 실제 현금을 확인하지 않으면
     # 시그널 20건 = 매수가능금액의 20배를 주문하게 된다. 남은 현금을 차감해가며 막는다.
+    # 사이징 기준은 모의·실거래 모두 "현금 + 보유분(매수가 기준)". 현금만 쓰면
+    # 보유가 늘수록 새 포지션이 작아져 모의와 실거래가 어긋난다.
+    tied = sum(p["quantity"] * p["entry_price"] for p in open_positions(args.orders_log))
     if args.assume_cash is not None:
-        # 이미 들고 있는 모의 포지션에 묶인 돈은 빼야 한다. 안 그러면 매일
-        # 전액이 새로 생기는 셈이라 실제보다 훨씬 많이 산 성적이 나온다.
-        tied = sum(p["quantity"] * p["entry_price"] for p in open_positions(args.orders_log))
-        cash = args.assume_cash - tied
-        equity_basis = args.assume_cash   # 사이징은 총자본 기준 (보유분 포함)
-        print(f"매수가능금액: {cash:,.2f} {args.currency} "
-              f"(가정 {args.assume_cash:,.0f} - 보유 {tied:,.2f}, 실제 잔고 아님)\n")
+        # 모의 현금 = 시작 자본 + 매도대금 - 매수대금. 시작 자본에서 보유분만 빼면
+        # 실현 손익이 반영 안 돼서 손실이 나도 매일 원금으로 되돌아간다.
+        cash = args.assume_cash + ledger_cash_flow(args.orders_log)
+        label = f"(가정 자본 {args.assume_cash:,.0f} 기준 누적, 실제 잔고 아님)"
     else:
         cash = client.get_buying_power(args.account_seq, args.currency)
-        equity_basis = cash
-        print(f"매수가능금액: {cash:,.2f} {args.currency}\n")
+        label = ""
+    equity_basis = cash + tied
+    print(f"현금 {cash:,.2f} + 보유 {tied:,.2f} = 자산 {equity_basis:,.2f} {args.currency} {label}\n")
 
     for _, row in pending.iterrows():
         if args.risk_pct is not None:
