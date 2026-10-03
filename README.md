@@ -107,13 +107,21 @@ VM 세팅 스크립트는 [`cloud/`](cloud), 자세한 내용은 [`cloud/README.
 보유 중 포지션(현재가·평가손익·손절까지 남은 거리)을 한 페이지에 모은다.
 수수료는 모든 체결에 0.1%(왕복 0.2%)를 반영해서, 수수료 차감 전/후를 나란히 보여준다.
 
+공개 주소: <https://benyco-dev.github.io/project-auto-trading-scanner/>
+
+**매일 자동 갱신된다.** VM이 미국장 마감 후 장부로 `paper.json`을 만들어 공개 GCS
+버킷에 올리고([`dashboard/publish.sh`](dashboard/publish.sh)), 페이지가 그 JSON을 읽어
+그린다. 저장소에는 코드만 두고 실행 산출물(장부·집계)은 커밋하지 않으며, VM에
+저장소 쓰기 권한도 주지 않는다 — VM은 버킷 하나에만 쓸 수 있다.
+
 ```bash
-./dashboard/refresh.sh      # VM에서 장부 받아 docs/index.html 재생성
+./dashboard/refresh.sh      # (선택) 로컬 미리보기용. 장부 받아 docs/paper.json 생성
+open 'docs/index.html?data=paper.json'
 ```
 
-장부 CSV는 커밋하지 않는다(`.gitignore`). 계산한 결과만 HTML 안에 담겨 배포된다.
 계산 로직([`dashboard/report.py`](dashboard/report.py)의 `build_report`)은 I/O가 없는
-순수 함수라 `test_checks.py`에서 가짜 장부로 그대로 검증한다.
+순수 함수라 `test_checks.py`에서 가짜 장부로 그대로 검증한다. 화면은 브라우저에서만
+그린다 — 렌더러를 파이썬·JS 양쪽에 두면 둘이 어긋나기 때문이다.
 
 ## 실제 주문 실행 (토스증권 API)
 

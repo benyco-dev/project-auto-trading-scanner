@@ -1,6 +1,7 @@
 #!/bin/bash
-# VM의 모의매매 장부를 받아 docs/index.html 을 다시 만든다.
-# 장부(csv)는 .gitignore라 커밋되지 않고, 계산 결과만 HTML에 담긴다.
+# 로컬에서 미리보기할 때 쓴다. VM의 장부를 받아 docs/paper.json 을 만든다.
+# 운영 갱신은 VM이 publish.sh로 매일 자동 수행하므로 이 스크립트는 선택 사항이다.
+# 장부(csv)와 paper.json 모두 .gitignore — 저장소에는 코드만 둔다.
 set -euo pipefail
 
 ZONE="asia-northeast3-a"
@@ -17,5 +18,5 @@ for cap in "${CAPITALS[@]}"; do
     --command="cat /opt/auto-trading/paper_orders_${cap}.csv" > "_ledgers/paper_orders_${cap}.csv"
 done
 
-./.venv/bin/python -m dashboard.report --orders-dir _ledgers --out docs/index.html
-echo "확인: open docs/index.html"
+./.venv/bin/python -m dashboard.report --orders-dir _ledgers --out docs/paper.json
+echo "확인: open 'docs/index.html?data=paper.json'"

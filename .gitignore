@@ -21,3 +21,4 @@ backtest_*.csv
 
 # 대시보드 생성용으로 VM에서 받아온 장부 사본
 _ledgers/
+docs/paper.json

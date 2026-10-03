@@ -7,6 +7,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY scanner.py strategies.py run_and_log.py backtest.py ./
 COPY toss/ ./toss/
+COPY dashboard/ ./dashboard/
 
 RUN useradd --create-home --uid 1000 scanner \
     && mkdir -p /data \

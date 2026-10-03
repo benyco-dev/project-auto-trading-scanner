@@ -21,9 +21,9 @@
   h3 { font-size:0.95rem; margin:24px 0 8px; font-weight:600; }
   .muted { color:var(--muted); font-weight:400; }
   .banner { background:#1d2430; border:1px solid var(--accent); border-radius:10px;
-             padding:12px 16px; margin:16px 0 28px; font-size:0.9rem; }
+            padding:12px 16px; margin:16px 0 28px; font-size:0.9rem; }
   .card { background:var(--card); border:1px solid var(--line); border-radius:14px;
-           padding:20px; margin-bottom:24px; }
+          padding:20px; margin-bottom:24px; }
   .card-head { display:flex; flex-wrap:wrap; gap:16px; justify-content:space-between; align-items:flex-start; }
   .kpi { display:flex; flex-wrap:wrap; gap:18px; }
   .kpi .label { display:block; font-size:0.72rem; color:var(--muted); }
@@ -55,92 +55,106 @@
     0.1%(왕복 0.2%)를 모든 체결에 반영했습니다.
   </div>
 
-  <p class="muted">청산 사유 분포 · target_sma 2건 · stop 1건</p>
-  
-<section class="card">
-  <header class="card-head">
-    <h2>가정 자본 $2,000</h2>
-    <div class="kpi">
-      <div><span class="label">현재 자산</span><strong>$1,973.72</strong></div>
-      <div><span class="label">수익률 (수수료 후)</span><strong><span class="down">-1.31%</span></strong></div>
-      <div><span class="label">수수료 차감 전</span><span><span class="down">-1.12%</span></span></div>
-      <div><span class="label">낸 수수료</span><span>$3.95</span></div>
-      <div><span class="label">승률</span><span>66.7% <span class="muted">(3건)</span></span></div>
-    </div>
-  </header>
-  <svg viewBox="0 0 560 120" class="spark" role="img" aria-label="자산 곡선 2026-09-16~2026-10-02"><line x1="0" y1="8.9" x2="560" y2="8.9" class="baseline"/><polyline points="0.0,8.9 46.7,8.9 93.3,8.9 140.0,44.1 186.7,0.0 233.3,37.6 280.0,32.7 326.7,3.1 373.3,15.2 420.0,30.9 466.7,72.3 513.3,120.0 560.0,72.9" fill="none" stroke="var(--down)" stroke-width="2"/></svg>
-  <h3>청산 완료 <span class="muted">실현 <span class="down">-10.31</span></span></h3>
-  <div class="scroll"><table>
-    <thead><tr><th>종목</th><th class="num">수량</th><th class="num">진입</th><th class="num">청산</th>
-    <th>사유</th><th class="num">수익률</th><th class="num">손익(수수료후)</th><th class="num">기간</th></tr></thead>
-    <tbody><tr><td>FRT</td><td class='num'>4</td><td class='num'>110.91</td><td class='num'>106.26</td><td><span class='tag tag-stop'>stop</span></td><td class='num'><span class="down">-4.19%</span></td><td class='num'><span class="down">-19.47</span></td><td class='num muted'>2026-09-21 → 2026-10-01</td></tr><tr><td>HSIC</td><td class='num'>4</td><td class='num'>84.84</td><td class='num'>85.99</td><td><span class='tag tag-target_sma'>target_sma</span></td><td class='num'><span class="up">+1.36%</span></td><td class='num'><span class="up">+3.92</span></td><td class='num muted'>2026-09-21 → 2026-09-28</td></tr><tr><td>BAX</td><td class='num'>10</td><td class='num'>22.80</td><td class='num'>23.37</td><td><span class='tag tag-target_sma'>target_sma</span></td><td class='num'><span class="up">+2.50%</span></td><td class='num'><span class="up">+5.24</span></td><td class='num muted'>2026-09-21 → 2026-09-25</td></tr></tbody>
-  </table></div>
-  <h3>보유 중 <span class="muted">평가 <span class="down">-14.03</span></span></h3>
-  <div class="scroll"><table>
-    <thead><tr><th>종목</th><th class="num">수량</th><th class="num">진입</th><th class="num">현재가</th>
-    <th class="num">수익률</th><th class="num">평가손익</th><th class="num">손절가</th>
-    <th class="num">손절까지</th><th class="num">매수일</th></tr></thead>
-    <tbody><tr><td>KO</td><td class='num'>6</td><td class='num'>86.08</td><td class='num'><span class="up">85.65</span></td><td class='num'><span class="down">-0.50%</span></td><td class='num'><span class="down">-2.58</span></td><td class='num'>83.01</td><td class='num'><span class="up">3.18%</span></td><td class='num muted'>2026-10-01</td></tr><tr><td>FOXA</td><td class='num'>4</td><td class='num'>63.07</td><td class='num'><span class="up">62.28</span></td><td class='num'><span class="down">-1.25%</span></td><td class='num'><span class="down">-3.16</span></td><td class='num'>58.93</td><td class='num'><span class="up">5.68%</span></td><td class='num muted'>2026-09-28</td></tr><tr><td>CNC</td><td class='num'>3</td><td class='num'>61.92</td><td class='num'><span class="up">62.99</span></td><td class='num'><span class="up">+1.73%</span></td><td class='num'><span class="up">+3.21</span></td><td class='num'>56.01</td><td class='num'><span class="up">12.46%</span></td><td class='num muted'>2026-09-25</td></tr><tr><td>CVS</td><td class='num'>3</td><td class='num'>87.60</td><td class='num'><span class="up">86.46</span></td><td class='num'><span class="down">-1.30%</span></td><td class='num'><span class="down">-3.42</span></td><td class='num'>81.86</td><td class='num'><span class="up">5.62%</span></td><td class='num muted'>2026-09-22</td></tr><tr><td>CSX</td><td class='num'>8</td><td class='num'>47.10</td><td class='num'><span class="up">47.43</span></td><td class='num'><span class="up">+0.70%</span></td><td class='num'><span class="up">+2.64</span></td><td class='num'>44.70</td><td class='num'><span class="up">6.11%</span></td><td class='num muted'>2026-09-21</td></tr><tr><td>VTR</td><td class='num'>4</td><td class='num'>86.69</td><td class='num'><span class="up">84.01</span></td><td class='num'><span class="down">-3.09%</span></td><td class='num'><span class="down">-10.72</span></td><td class='num'>82.05</td><td class='num'><span class="up">2.39%</span></td><td class='num muted'>2026-09-21</td></tr></tbody>
-  </table></div>
-</section>
-<section class="card">
-  <header class="card-head">
-    <h2>가정 자본 $8,000</h2>
-    <div class="kpi">
-      <div><span class="label">현재 자산</span><strong>$7,890.46</strong></div>
-      <div><span class="label">수익률 (수수료 후)</span><strong><span class="down">-1.37%</span></strong></div>
-      <div><span class="label">수수료 차감 전</span><span><span class="down">-1.16%</span></span></div>
-      <div><span class="label">낸 수수료</span><span>$16.40</span></div>
-      <div><span class="label">승률</span><span>66.7% <span class="muted">(3건)</span></span></div>
-    </div>
-  </header>
-  <svg viewBox="0 0 560 120" class="spark" role="img" aria-label="자산 곡선 2026-09-16~2026-10-02"><line x1="0" y1="12.0" x2="560" y2="12.0" class="baseline"/><polyline points="0.0,12.0 46.7,12.0 93.3,12.0 140.0,49.9 186.7,0.0 233.3,31.1 280.0,18.8 326.7,9.7 373.3,43.0 420.0,54.8 466.7,89.8 513.3,120.0 560.0,78.8" fill="none" stroke="var(--down)" stroke-width="2"/></svg>
-  <h3>청산 완료 <span class="muted">실현 <span class="down">-50.01</span></span></h3>
-  <div class="scroll"><table>
-    <thead><tr><th>종목</th><th class="num">수량</th><th class="num">진입</th><th class="num">청산</th>
-    <th>사유</th><th class="num">수익률</th><th class="num">손익(수수료후)</th><th class="num">기간</th></tr></thead>
-    <tbody><tr><td>FRT</td><td class='num'>18</td><td class='num'>110.91</td><td class='num'>106.26</td><td><span class='tag tag-stop'>stop</span></td><td class='num'><span class="down">-4.19%</span></td><td class='num'><span class="down">-87.61</span></td><td class='num muted'>2026-09-21 → 2026-10-01</td></tr><tr><td>HSIC</td><td class='num'>17</td><td class='num'>84.84</td><td class='num'>85.99</td><td><span class='tag tag-target_sma'>target_sma</span></td><td class='num'><span class="up">+1.36%</span></td><td class='num'><span class="up">+16.65</span></td><td class='num muted'>2026-09-21 → 2026-09-28</td></tr><tr><td>BAX</td><td class='num'>40</td><td class='num'>22.80</td><td class='num'>23.37</td><td><span class='tag tag-target_sma'>target_sma</span></td><td class='num'><span class="up">+2.50%</span></td><td class='num'><span class="up">+20.95</span></td><td class='num muted'>2026-09-21 → 2026-09-25</td></tr></tbody>
-  </table></div>
-  <h3>보유 중 <span class="muted">평가 <span class="down">-51.79</span></span></h3>
-  <div class="scroll"><table>
-    <thead><tr><th>종목</th><th class="num">수량</th><th class="num">진입</th><th class="num">현재가</th>
-    <th class="num">수익률</th><th class="num">평가손익</th><th class="num">손절가</th>
-    <th class="num">손절까지</th><th class="num">매수일</th></tr></thead>
-    <tbody><tr><td>KO</td><td class='num'>25</td><td class='num'>86.08</td><td class='num'><span class="up">85.65</span></td><td class='num'><span class="down">-0.50%</span></td><td class='num'><span class="down">-10.75</span></td><td class='num'>83.01</td><td class='num'><span class="up">3.18%</span></td><td class='num muted'>2026-10-01</td></tr><tr><td>FOXA</td><td class='num'>19</td><td class='num'>63.07</td><td class='num'><span class="up">62.28</span></td><td class='num'><span class="down">-1.25%</span></td><td class='num'><span class="down">-15.01</span></td><td class='num'>58.93</td><td class='num'><span class="up">5.68%</span></td><td class='num muted'>2026-09-28</td></tr><tr><td>MNST</td><td class='num'>32</td><td class='num'>42.67</td><td class='num'><span class="up">42.94</span></td><td class='num'><span class="up">+0.63%</span></td><td class='num'><span class="up">+8.64</span></td><td class='num'>40.19</td><td class='num'><span class="up">6.84%</span></td><td class='num muted'>2026-09-25</td></tr><tr><td>CSX</td><td class='num'>33</td><td class='num'>47.10</td><td class='num'><span class="up">47.43</span></td><td class='num'><span class="up">+0.70%</span></td><td class='num'><span class="up">+10.89</span></td><td class='num'>44.70</td><td class='num'><span class="up">6.11%</span></td><td class='num muted'>2026-09-21</td></tr><tr><td>VTR</td><td class='num'>17</td><td class='num'>86.69</td><td class='num'><span class="up">84.01</span></td><td class='num'><span class="down">-3.09%</span></td><td class='num'><span class="down">-45.56</span></td><td class='num'>82.05</td><td class='num'><span class="up">2.39%</span></td><td class='num muted'>2026-09-21</td></tr></tbody>
-  </table></div>
-</section>
-<section class="card">
-  <header class="card-head">
-    <h2>가정 자본 $20,000</h2>
-    <div class="kpi">
-      <div><span class="label">현재 자산</span><strong>$19,715.96</strong></div>
-      <div><span class="label">수익률 (수수료 후)</span><strong><span class="down">-1.42%</span></strong></div>
-      <div><span class="label">수수료 차감 전</span><span><span class="down">-1.21%</span></span></div>
-      <div><span class="label">낸 수수료</span><span>$41.97</span></div>
-      <div><span class="label">승률</span><span>66.7% <span class="muted">(3건)</span></span></div>
-    </div>
-  </header>
-  <svg viewBox="0 0 560 120" class="spark" role="img" aria-label="자산 곡선 2026-09-16~2026-10-02"><line x1="0" y1="11.9" x2="560" y2="11.9" class="baseline"/><polyline points="0.0,11.9 46.7,11.9 93.3,11.9 140.0,49.7 186.7,0.0 233.3,31.8 280.0,19.2 326.7,9.9 373.3,43.0 420.0,54.7 466.7,89.6 513.3,120.0 560.0,79.7" fill="none" stroke="var(--down)" stroke-width="2"/></svg>
-  <h3>청산 완료 <span class="muted">실현 <span class="down">-132.77</span></span></h3>
-  <div class="scroll"><table>
-    <thead><tr><th>종목</th><th class="num">수량</th><th class="num">진입</th><th class="num">청산</th>
-    <th>사유</th><th class="num">수익률</th><th class="num">손익(수수료후)</th><th class="num">기간</th></tr></thead>
-    <tbody><tr><td>FRT</td><td class='num'>47</td><td class='num'>110.91</td><td class='num'>106.26</td><td><span class='tag tag-stop'>stop</span></td><td class='num'><span class="down">-4.19%</span></td><td class='num'><span class="down">-228.76</span></td><td class='num muted'>2026-09-21 → 2026-10-01</td></tr><tr><td>HSIC</td><td class='num'>44</td><td class='num'>84.84</td><td class='num'>85.99</td><td><span class='tag tag-target_sma'>target_sma</span></td><td class='num'><span class="up">+1.36%</span></td><td class='num'><span class="up">+43.08</span></td><td class='num muted'>2026-09-21 → 2026-09-28</td></tr><tr><td>BAX</td><td class='num'>101</td><td class='num'>22.80</td><td class='num'>23.37</td><td><span class='tag tag-target_sma'>target_sma</span></td><td class='num'><span class="up">+2.50%</span></td><td class='num'><span class="up">+52.91</span></td><td class='num muted'>2026-09-21 → 2026-09-25</td></tr></tbody>
-  </table></div>
-  <h3>보유 중 <span class="muted">평가 <span class="down">-131.69</span></span></h3>
-  <div class="scroll"><table>
-    <thead><tr><th>종목</th><th class="num">수량</th><th class="num">진입</th><th class="num">현재가</th>
-    <th class="num">수익률</th><th class="num">평가손익</th><th class="num">손절가</th>
-    <th class="num">손절까지</th><th class="num">매수일</th></tr></thead>
-    <tbody><tr><td>KO</td><td class='num'>64</td><td class='num'>86.08</td><td class='num'><span class="up">85.65</span></td><td class='num'><span class="down">-0.50%</span></td><td class='num'><span class="down">-27.52</span></td><td class='num'>83.01</td><td class='num'><span class="up">3.18%</span></td><td class='num muted'>2026-10-01</td></tr><tr><td>FOXA</td><td class='num'>48</td><td class='num'>63.07</td><td class='num'><span class="up">62.28</span></td><td class='num'><span class="down">-1.25%</span></td><td class='num'><span class="down">-37.92</span></td><td class='num'>58.93</td><td class='num'><span class="up">5.68%</span></td><td class='num muted'>2026-09-28</td></tr><tr><td>MNST</td><td class='num'>80</td><td class='num'>42.67</td><td class='num'><span class="up">42.94</span></td><td class='num'><span class="up">+0.63%</span></td><td class='num'><span class="up">+21.60</span></td><td class='num'>40.19</td><td class='num'><span class="up">6.84%</span></td><td class='num muted'>2026-09-25</td></tr><tr><td>CSX</td><td class='num'>83</td><td class='num'>47.10</td><td class='num'><span class="up">47.43</span></td><td class='num'><span class="up">+0.70%</span></td><td class='num'><span class="up">+27.39</span></td><td class='num'>44.70</td><td class='num'><span class="up">6.11%</span></td><td class='num muted'>2026-09-21</td></tr><tr><td>VTR</td><td class='num'>43</td><td class='num'>86.69</td><td class='num'><span class="up">84.01</span></td><td class='num'><span class="down">-3.09%</span></td><td class='num'><span class="down">-115.24</span></td><td class='num'>82.05</td><td class='num'><span class="up">2.39%</span></td><td class='num muted'>2026-09-21</td></tr></tbody>
-  </table></div>
-</section>
+  <p class="muted" id="reasons">불러오는 중…</p>
+  <div id="tracks"></div>
 
-  <footer>
-    마지막 갱신 2026-10-03 09:37 UTC · 시세 출처 Yahoo Finance(지연) ·
+  <footer id="foot">
+    시세 출처 Yahoo Finance(지연) ·
     글꼴 <a href="https://github.com/orioncactus/pretendard">Pretendard</a> (SIL OFL 1.1) ·
     <a href="https://github.com/benyco-dev/project-auto-trading-scanner">소스 코드</a>
   </footer>
 </div>
+
+<script>
+// 데이터는 VM이 매일 올리는 공개 GCS 객체에서 읽는다. 저장소에는 코드만 두고
+// 실행 산출물(장부·집계)은 커밋하지 않기 위해서다.
+const DATA_URL = "https://storage.googleapis.com/paper-trading-dashboard/paper.json";
+// 로컬에서 ?data=paper.json 으로 붙여 미리보기할 수 있다.
+const src = new URLSearchParams(location.search).get("data") || DATA_URL;
+
+const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) =>
+  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+const money = (v) => v == null ? "—" : v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+function num(v, suffix = "", plus = false) {
+  if (v == null) return '<span class="muted">—</span>';
+  const cls = v > 0 ? "up" : v < 0 ? "down" : "";
+  return `<span class="${cls}">${plus && v > 0 ? "+" : ""}${money(v)}${suffix}</span>`;
+}
+
+function sparkline(curve, capital, w = 560, h = 120) {
+  if (!curve || curve.length < 2) return '<p class="muted">자산 곡선을 그리기엔 데이터가 부족합니다.</p>';
+  const vals = curve.map((c) => c.equity);
+  const lo = Math.min(...vals, capital), hi = Math.max(...vals, capital);
+  const span = (hi - lo) || 1;
+  const pts = vals.map((v, i) => `${(i / (vals.length - 1) * w).toFixed(1)},${(h - (v - lo) / span * h).toFixed(1)}`).join(" ");
+  const base = h - (capital - lo) / span * h;
+  const color = vals[vals.length - 1] >= capital ? "var(--up)" : "var(--down)";
+  return `<svg viewBox="0 0 ${w} ${h}" class="spark" role="img"
+    aria-label="자산 곡선 ${esc(curve[0].date)}~${esc(curve[curve.length - 1].date)}">
+    <line x1="0" y1="${base.toFixed(1)}" x2="${w}" y2="${base.toFixed(1)}" class="baseline"/>
+    <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2"/></svg>`;
+}
+
+function trackCard(t) {
+  const closed = [...t.closed].sort((a, b) => b.exit_date.localeCompare(a.exit_date)).map((c) => `
+    <tr><td>${esc(c.ticker)}</td><td class="num">${c.qty}</td>
+    <td class="num">${money(c.entry)}</td><td class="num">${money(c.exit)}</td>
+    <td><span class="tag tag-${esc(c.reason.split("(")[0])}">${esc(c.reason)}</span></td>
+    <td class="num">${num(c.pct, "%", true)}</td><td class="num">${num(c.pnl, "", true)}</td>
+    <td class="num muted">${esc(c.entry_date)} → ${esc(c.exit_date)}</td></tr>`).join("")
+    || '<tr><td colspan="8" class="muted">아직 청산된 트레이드가 없습니다.</td></tr>';
+
+  const open = [...t.open].sort((a, b) => b.entry_date.localeCompare(a.entry_date)).map((p) => `
+    <tr><td>${esc(p.ticker)}</td><td class="num">${p.qty}</td>
+    <td class="num">${money(p.entry)}</td><td class="num">${money(p.now)}</td>
+    <td class="num">${num(p.pct, "%", true)}</td><td class="num">${num(p.pnl, "", true)}</td>
+    <td class="num">${money(p.stop)}</td><td class="num">${num(p.to_stop, "%")}</td>
+    <td class="num muted">${esc(p.entry_date)}</td></tr>`).join("")
+    || '<tr><td colspan="9" class="muted">보유 중인 포지션이 없습니다.</td></tr>';
+
+  return `<section class="card">
+    <header class="card-head">
+      <h2>가정 자본 $${t.capital.toLocaleString()}</h2>
+      <div class="kpi">
+        <div><span class="label">현재 자산</span><strong>$${money(t.equity)}</strong></div>
+        <div><span class="label">수익률 (수수료 후)</span><strong>${num(t.total_pct, "%", true)}</strong></div>
+        <div><span class="label">수수료 차감 전</span><span>${num(t.gross_pct, "%", true)}</span></div>
+        <div><span class="label">낸 수수료</span><span>$${money(t.fees)}</span></div>
+        <div><span class="label">승률</span><span>${t.win_rate == null ? "—" : t.win_rate + "%"}
+          <span class="muted">(${t.closed.length}건)</span></span></div>
+      </div>
+    </header>
+    ${sparkline(t.curve, t.capital)}
+    <h3>청산 완료 <span class="muted">실현 ${num(t.realized, "", true)}</span></h3>
+    <div class="scroll"><table>
+      <thead><tr><th>종목</th><th class="num">수량</th><th class="num">진입</th><th class="num">청산</th>
+      <th>사유</th><th class="num">수익률</th><th class="num">손익(수수료후)</th><th class="num">기간</th></tr></thead>
+      <tbody>${closed}</tbody></table></div>
+    <h3>보유 중 <span class="muted">평가 ${num(t.unrealized, "", true)}</span></h3>
+    <div class="scroll"><table>
+      <thead><tr><th>종목</th><th class="num">수량</th><th class="num">진입</th><th class="num">현재가</th>
+      <th class="num">수익률</th><th class="num">평가손익</th><th class="num">손절가</th>
+      <th class="num">손절까지</th><th class="num">매수일</th></tr></thead>
+      <tbody>${open}</tbody></table></div>
+  </section>`;
+}
+
+fetch(src, { cache: "no-store" })
+  .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+  .then((rep) => {
+    document.getElementById("reasons").textContent =
+      "청산 사유 분포 · " + (Object.entries(rep.reasons).map(([k, v]) => `${k} ${v}건`).join(" · ") || "—");
+    document.getElementById("tracks").innerHTML = rep.tracks.map(trackCard).join("");
+    document.getElementById("foot").insertAdjacentHTML("afterbegin",
+      `마지막 갱신 ${esc(rep.generated_at)} · `);
+  })
+  .catch((e) => {
+    document.getElementById("reasons").innerHTML =
+      `<span class="down">데이터를 불러오지 못했습니다 (${esc(e.message)}).</span> ` +
+      `VM이 매일 올리는 <a href="${DATA_URL}">paper.json</a>을 읽습니다.`;
+  });
+</script>
 </body>
 </html>
