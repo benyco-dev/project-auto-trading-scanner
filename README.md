@@ -101,6 +101,20 @@ MACD(5,25,9) 골든크로스 + 15일 이격도 85% 이하. **청산/손절 규�
 Docker Hub에 올림 → Google Compute Engine VM이 cron으로 매일 그 이미지를 pull + run.
 VM 세팅 스크립트는 [`cloud/`](cloud), 자세한 내용은 [`cloud/README.md`](cloud/README.md) 참고.
 
+## 모의매매 대시보드
+
+모의매매 결과를 눈으로 보는 정적 페이지. 자본 규모별 자산 곡선, 청산 완료 트레이드,
+보유 중 포지션(현재가·평가손익·손절까지 남은 거리)을 한 페이지에 모은다.
+수수료는 모든 체결에 0.1%(왕복 0.2%)를 반영해서, 수수료 차감 전/후를 나란히 보여준다.
+
+```bash
+./dashboard/refresh.sh      # VM에서 장부 받아 docs/index.html 재생성
+```
+
+장부 CSV는 커밋하지 않는다(`.gitignore`). 계산한 결과만 HTML 안에 담겨 배포된다.
+계산 로직([`dashboard/report.py`](dashboard/report.py)의 `build_report`)은 I/O가 없는
+순수 함수라 `test_checks.py`에서 가짜 장부로 그대로 검증한다.
+
 ## 실제 주문 실행 (토스증권 API)
 
 [`toss/`](toss) 에 토스증권 Open API 클라이언트가 있다. API 키 발급 방법은

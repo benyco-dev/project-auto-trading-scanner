@@ -7,6 +7,7 @@ import pandas as pd
 
 from strategies import LegacyParams, RSI2Params, build_params, legacy_latest_signal, rsi2_trend_trades
 from toss.exit_positions import exit_reason, ledger_cash_flow, open_positions
+from dashboard.report import build_report
 from toss.place_orders import select_candidates
 
 
@@ -148,6 +149,27 @@ def test_time_exit_counts_trading_days():
     assert exit_reason(df, pos, 10, 4, today) is None
     assert exit_reason(df, pos, 10, 3, today)[0].startswith("time")
 
+def test_report_splits_closed_and_open_with_fees():
+    # 장부 → 청산/보유 분리, 수수료 차감, 평가손익 계산.
+    orders = pd.DataFrame([
+        {"ticker": "A", "side": "BUY", "quantity": 10, "price": 100.0,
+         "stop_price": 90.0, "filled_at": "2026-09-21", "result": ""},
+        {"ticker": "A", "side": "SELL", "quantity": 10, "price": 110.0,
+         "stop_price": 90.0, "filled_at": "2026-09-25", "result": "target_sma | {}"},
+        {"ticker": "B", "side": "BUY", "quantity": 5, "price": 50.0,
+         "stop_price": 45.0, "filled_at": "2026-09-28", "result": ""},
+    ])
+    rep = build_report({2000: orders}, pd.DataFrame(), {"B": 60.0}, "x")
+    t = rep["tracks"][0]
+
+    assert len(t["closed"]) == 1 and len(t["open"]) == 1
+    c = t["closed"][0]
+    assert c["pnl"] == 100.0 - round(10 * 210 * 0.001, 2)   # 총이익 100 - 수수료 2.1
+    assert c["reason"] == "target_sma"
+    assert t["open"][0]["pnl"] == 50.0                      # (60-50) x 5, 미실현이라 수수료 미차감
+    assert t["open"][0]["to_stop"] == round((60 / 45 - 1) * 100, 2)
+
+
 if __name__ == "__main__":
     test_legacy_ignores_nan_disparity()
     test_rsi2_stop_below_entry()
@@ -160,4 +182,5 @@ if __name__ == "__main__":
     test_ledger_cash_compounds_realized_pnl()
     test_exit_ignores_todays_partial_bar_for_target()
     test_time_exit_counts_trading_days()
+    test_report_splits_closed_and_open_with_fees()
     print("all checks passed")
