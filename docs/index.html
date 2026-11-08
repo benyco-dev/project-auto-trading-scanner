@@ -77,8 +77,10 @@
 // 데이터는 VM이 올리는 공개 GCS 객체에서 읽는다. 저장소에는 코드만 두고
 // 실행 산출물(장부·집계)은 커밋하지 않기 위해서다.
 const DATA_BASE = "https://storage.googleapis.com/paper-trading-dashboard";
-// 로컬에서 ?base=. 으로 docs/*.json 을 붙여 미리보기할 수 있다.
-const base = new URLSearchParams(location.search).get("base") || DATA_BASE;
+// 로컬에서 ?base=. 으로 docs/*.json 을 붙여 미리보기할 수 있다. 상대 경로만 허용 —
+// 외부 주소를 받으면 남이 만든 링크로 임의 JSON(과 javascript: 링크)을 이 페이지에 그릴 수 있다.
+const q = new URLSearchParams(location.search).get("base");
+const base = q && !q.includes(":") && !q.startsWith("//") && !q.startsWith("\\") ? q : DATA_BASE;
 
 // 첫 번째가 기본 탭이다.
 const STRATS = {
