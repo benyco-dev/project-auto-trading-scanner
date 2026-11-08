@@ -9,6 +9,8 @@ from strategies import LegacyParams, RSI2Params, build_params, legacy_latest_sig
 from toss.exit_positions import exit_reason, ledger_cash_flow, open_positions
 from dashboard.report import build_report
 from toss.place_orders import select_candidates
+from weekly_ma.paper import decide
+from weekly_ma.strategy import add_signals, to_weekly
 
 
 def _df(closes):
@@ -170,6 +172,42 @@ def test_report_splits_closed_and_open_with_fees():
     assert t["open"][0]["to_stop"] == round((60 / 45 - 1) * 100, 2)
 
 
+def _daily_from_weekly(week_closes, start="2025-01-06"):
+    # 주마다 월~금 5봉을 같은 종가로 깐다 → 주봉 종가 = 그 값
+    days = pd.bdate_range(start, periods=len(week_closes) * 5)
+    c = pd.Series([w for w in week_closes for _ in range(5)], index=days, dtype=float)
+    return pd.DataFrame({"Open": c, "High": c, "Low": c, "Close": c, "Volume": 1000.0})
+
+
+def test_weekly_drops_unfinished_week():
+    # 수요일에 돌리면 이번 주(금요일 미도래)는 판단에 쓰면 안 된다.
+    d = _daily_from_weekly([10, 11])                      # 2025-01-06 ~ 01-17
+    assert len(to_weekly(d, asof=date(2025, 1, 15))) == 1  # 둘째 주 수요일
+    assert len(to_weekly(d, asof=date(2025, 1, 17))) == 2  # 둘째 주 금요일 마감 후
+
+
+def test_ma40w_buys_cross_up_and_sells_cross_down():
+    flat_then_up = [100] * 45 + [90, 120]                 # 40주선 아래(90) → 위(120)
+    w_up = add_signals(to_weekly(_daily_from_weekly(flat_then_up)))
+    w_down = add_signals(to_weekly(_daily_from_weekly([100] * 45 + [80])))
+    w_above = add_signals(to_weekly(_daily_from_weekly([100] * 45 + [110, 120])))  # 이미 위였음
+    held = [{"ticker": "D", "quantity": 3, "entry_price": 100.0, "stop_price": 99.0,
+             "filled_at": "2025-01-01", "strategy": "ma40w"}]
+    sells, buys = decide({"U": w_up, "D": w_down, "A": w_above}, held, 1000.0, 1300.0, 2)
+
+    assert [s["ticker"] for s in sells] == ["D"]          # 40주선 이탈 → 매도
+    assert [b["ticker"] for b in buys] == ["U"]           # 막 돌파한 것만 (이미 위였던 A는 아님)
+    assert buys[0]["quantity"] == int(1300 / 2 // 120)    # 자산/슬롯 균등 분할
+
+
+def test_ma40w_respects_slots_and_held():
+    up = add_signals(to_weekly(_daily_from_weekly([100] * 45 + [90, 120])))
+    held = [{"ticker": "U1", "quantity": 1, "entry_price": 120.0, "stop_price": 99.0,
+             "filled_at": "x", "strategy": "ma40w"}]
+    _, buys = decide({"U1": up, "U2": up, "U3": up}, held, 10_000.0, 10_000.0, 2)
+    assert [b["ticker"] for b in buys] == ["U2"]          # 보유 종목 재매수 X, 슬롯 2개 초과 X
+
+
 if __name__ == "__main__":
     test_legacy_ignores_nan_disparity()
     test_rsi2_stop_below_entry()
@@ -183,4 +221,7 @@ if __name__ == "__main__":
     test_exit_ignores_todays_partial_bar_for_target()
     test_time_exit_counts_trading_days()
     test_report_splits_closed_and_open_with_fees()
+    test_weekly_drops_unfinished_week()
+    test_ma40w_buys_cross_up_and_sells_cross_down()
+    test_ma40w_respects_slots_and_held()
     print("all checks passed")

@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>RSI(2) 자동매매 — 모의매매 현황</title>
-<meta name="description" content="RSI(2) 평균회귀 전략 자동매매 봇의 모의매매(paper trading) 결과. 실제 주문은 체결되지 않습니다.">
+<title>자동매매 모의매매 현황</title>
+<meta name="description" content="40주선 돌파·RSI(2) 눌림목 두 전략 자동매매 봇의 모의매매(paper trading) 결과. 실제 주문은 체결되지 않습니다.">
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <style>
@@ -39,19 +39,27 @@
   .tag { font-size:0.72rem; padding:2px 7px; border-radius:20px; border:1px solid var(--line); }
   .tag-stop { color:var(--down); border-color:var(--down); }
   .tag-target_sma { color:var(--up); border-color:var(--up); }
+  .tag-ma_cross_down { color:var(--down); border-color:var(--down); }
+  .tabs { display:flex; gap:8px; margin:20px 0 8px; flex-wrap:wrap; }
+  .tabs a { padding:8px 16px; border-radius:20px; border:1px solid var(--line); color:var(--muted);
+            text-decoration:none; font-weight:600; font-size:0.92rem; }
+  .tabs a[aria-current="page"] { color:var(--text); border-color:var(--accent); background:#1d2430; }
   footer { color:var(--muted); font-size:0.8rem; margin-top:32px; }
   a { color:var(--accent); }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>RSI(2) 자동매매 — 모의매매 현황</h1>
-  <p class="muted">200일선 위 + RSI(2)&lt;5 진입 · SMA10 익절 / ATR×2.5 손절 / 20거래일 시간청산 ·
-     트레이드당 리스크 1% · 하루 최대 5종목</p>
+  <h1>자동매매 — 모의매매 현황</h1>
+  <nav class="tabs" aria-label="전략">
+    <a href="#ma40w">40주선 돌파</a>
+    <a href="#rsi2">RSI(2) 눌림목</a>
+  </nav>
+  <p class="muted" id="desc"></p>
 
   <div class="banner">
     <strong>이건 모의매매입니다.</strong> 실제 주문은 단 한 건도 나가지 않았고, 아래 숫자는
-    같은 전략을 가정 자본으로 굴렸을 때의 기록입니다. 수수료는 토스증권 미국주식 기준
+    각 전략을 가정 자본으로 굴렸을 때의 기록입니다. 수수료는 토스증권 미국주식 기준
     0.1%(왕복 0.2%)를 모든 체결에 반영했습니다.
   </div>
 
@@ -66,11 +74,27 @@
 </div>
 
 <script>
-// 데이터는 VM이 매일 올리는 공개 GCS 객체에서 읽는다. 저장소에는 코드만 두고
+// 데이터는 VM이 올리는 공개 GCS 객체에서 읽는다. 저장소에는 코드만 두고
 // 실행 산출물(장부·집계)은 커밋하지 않기 위해서다.
-const DATA_URL = "https://storage.googleapis.com/paper-trading-dashboard/paper.json";
-// 로컬에서 ?data=paper.json 으로 붙여 미리보기할 수 있다.
-const src = new URLSearchParams(location.search).get("data") || DATA_URL;
+const DATA_BASE = "https://storage.googleapis.com/paper-trading-dashboard";
+// 로컬에서 ?base=. 으로 docs/*.json 을 붙여 미리보기할 수 있다.
+const base = new URLSearchParams(location.search).get("base") || DATA_BASE;
+
+// 첫 번째가 기본 탭이다.
+const STRATS = {
+  ma40w: {
+    file: "ma40w.json",
+    desc: "S&P 500 · 주간 종가가 40주 이동평균을 아래→위로 돌파하면 매수, 다시 아래로 내려가면 매도 · " +
+          "자본 20등분 균등 비중 · 같은 주 돌파가 많으면 거래량 큰 순 · 주 1회 (금요일 종가 기준)",
+    stop: "진입 시 40주선", toStop: "그 선까지",
+  },
+  rsi2: {
+    file: "paper.json",
+    desc: "200일선 위 + RSI(2)&lt;5 진입 · SMA10 익절 / ATR×2.5 손절 / 20거래일 시간청산 · " +
+          "트레이드당 리스크 1% · 하루 최대 5종목",
+    stop: "손절가", toStop: "손절까지",
+  },
+};
 
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) =>
   ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -97,7 +121,7 @@ function sparkline(curve, capital, w = 560, h = 120) {
     <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2"/></svg>`;
 }
 
-function trackCard(t) {
+function trackCard(t, st) {
   const closed = [...t.closed].sort((a, b) => b.exit_date.localeCompare(a.exit_date)).map((c) => `
     <tr><td>${esc(c.ticker)}</td><td class="num">${c.qty}</td>
     <td class="num">${money(c.entry)}</td><td class="num">${money(c.exit)}</td>
@@ -135,26 +159,47 @@ function trackCard(t) {
     <h3>보유 중 <span class="muted">평가 ${num(t.unrealized, "", true)}</span></h3>
     <div class="scroll"><table>
       <thead><tr><th>종목</th><th class="num">수량</th><th class="num">진입</th><th class="num">현재가</th>
-      <th class="num">수익률</th><th class="num">평가손익</th><th class="num">손절가</th>
-      <th class="num">손절까지</th><th class="num">매수일</th></tr></thead>
+      <th class="num">수익률</th><th class="num">평가손익</th><th class="num">${st.stop}</th>
+      <th class="num">${st.toStop}</th><th class="num">매수일</th></tr></thead>
       <tbody>${open}</tbody></table></div>
   </section>`;
 }
 
-fetch(src, { cache: "no-store" })
-  .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
-  .then((rep) => {
-    document.getElementById("reasons").textContent =
-      "청산 사유 분포 · " + (Object.entries(rep.reasons).map(([k, v]) => `${k} ${v}건`).join(" · ") || "—");
-    document.getElementById("tracks").innerHTML = rep.tracks.map(trackCard).join("");
-    document.getElementById("foot").insertAdjacentHTML("afterbegin",
-      `마지막 갱신 ${esc(rep.generated_at)} · `);
-  })
-  .catch((e) => {
-    document.getElementById("reasons").innerHTML =
-      `<span class="down">데이터를 불러오지 못했습니다 (${esc(e.message)}).</span> ` +
-      `VM이 매일 올리는 <a href="${DATA_URL}">paper.json</a>을 읽습니다.`;
+const cache = {};
+let foot = null;
+
+function show() {
+  const key = STRATS[location.hash.slice(1)] ? location.hash.slice(1) : Object.keys(STRATS)[0];
+  const st = STRATS[key];
+  document.querySelectorAll(".tabs a").forEach((a) => {
+    if (a.getAttribute("href") === "#" + key) a.setAttribute("aria-current", "page");
+    else a.removeAttribute("aria-current");
   });
+  document.getElementById("desc").innerHTML = st.desc;
+  document.getElementById("reasons").textContent = "불러오는 중…";
+  document.getElementById("tracks").innerHTML = "";
+
+  const url = `${base}/${st.file}`;
+  (cache[key] ||= fetch(url, { cache: "no-store" })
+    .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); }))
+    .then((rep) => {
+      if (location.hash.slice(1) !== key && STRATS[location.hash.slice(1)]) return;  // 그사이 탭이 바뀜
+      document.getElementById("reasons").textContent =
+        "청산 사유 분포 · " + (Object.entries(rep.reasons).map(([k, v]) => `${k} ${v}건`).join(" · ") || "—");
+      document.getElementById("tracks").innerHTML = rep.tracks.map((t) => trackCard(t, st)).join("");
+      foot ||= document.getElementById("foot").innerHTML;
+      document.getElementById("foot").innerHTML = `마지막 갱신 ${esc(rep.generated_at)} · ` + foot;
+    })
+    .catch((e) => {
+      delete cache[key];
+      document.getElementById("reasons").innerHTML =
+        `<span class="down">데이터를 불러오지 못했습니다 (${esc(e.message)}).</span> ` +
+        `VM이 올리는 <a href="${esc(url)}">${esc(st.file)}</a>을 읽습니다.`;
+    });
+}
+
+window.addEventListener("hashchange", show);
+show();
 </script>
 </body>
 </html>

@@ -18,6 +18,8 @@ dashboard/report.py
 
 사용:
   python -m dashboard.report --orders-dir ./_ledgers --out docs/paper.json
+  python -m dashboard.report --orders-dir ./_ledgers --prefix paper_orders_ma40w \
+      --capitals 20000 --out docs/ma40w.json
 """
 
 from __future__ import annotations
@@ -150,9 +152,11 @@ def build_report(ledgers: dict[int, pd.DataFrame], prices: pd.DataFrame,
 
 def main() -> None:
     ap = argparse.ArgumentParser(description="모의매매 장부로 대시보드 JSON 생성")
-    ap.add_argument("--orders-dir", default="_ledgers", help="paper_orders_*.csv 가 있는 폴더")
+    ap.add_argument("--orders-dir", default="_ledgers", help="장부 CSV가 있는 폴더")
     ap.add_argument("--out", default="docs/paper.json")
     ap.add_argument("--capitals", type=int, nargs="+", default=[2000, 8000, 20000])
+    ap.add_argument("--prefix", default="paper_orders",
+                    help="장부 파일 접두사. 40주선 전략은 paper_orders_ma40w")
     args = ap.parse_args()
 
     import yfinance as yf
@@ -160,7 +164,7 @@ def main() -> None:
     orders_dir = Path(args.orders_dir)
     ledgers, tickers = {}, set()
     for cap in args.capitals:
-        f = orders_dir / f"paper_orders_{cap}.csv"
+        f = orders_dir / f"{args.prefix}_{cap}.csv"
         if not f.exists():
             continue
         df = pd.read_csv(f)
