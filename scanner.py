@@ -39,6 +39,39 @@ def fetch_sp500_tickers() -> list[str]:
     return [s.replace(".", "-") for s in symbols]  # yfinance 표기 규칙(BRK.B -> BRK-B)에 맞춤
 
 
+def fetch_sp500_changes() -> pd.DataFrame:
+    """S&P 500 편입·편출 이력 (date, added, removed). 위키피디아 'Historical components' 표."""
+    url = "https://en.wikipedia.org/wiki/Historical_components_of_the_S%26P_500"
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+    with urllib.request.urlopen(req) as resp:
+        t = pd.read_html(io.StringIO(resp.read().decode("utf-8")))[0]
+    t = t.iloc[:, [0, 1, 3]]
+    t.columns = ["date", "added", "removed"]
+    t["date"] = pd.to_datetime(t["date"], errors="coerce")
+    return t.dropna(subset=["date"])
+
+
+def sp500_members_at(current: list[str], changes: pd.DataFrame, dates) -> dict:
+    """현재 구성종목에서 변경 이력을 거꾸로 되돌려 각 날짜의 구성종목을 복원한다. I/O 없음.
+
+    백테스트를 '현재' 구성종목으로 돌리면 그 사이 크게 올라 편입된 종목을 편입 전부터
+    들고 있는 셈이라(생존편향) 추세·모멘텀 전략이 3~4배 부풀려진다.
+    """
+    fix = lambda s: str(s).replace(".", "-")
+    members, m = {}, set(current)
+    rows = changes.sort_values("date", ascending=False).to_dict("records")
+    i = 0
+    for d in sorted(pd.to_datetime(list(dates)), reverse=True):
+        while i < len(rows) and rows[i]["date"] > d:      # d 이후 변경을 되돌린다
+            if pd.notna(rows[i]["added"]):
+                m.discard(fix(rows[i]["added"]))
+            if pd.notna(rows[i]["removed"]):
+                m.add(fix(rows[i]["removed"]))
+            i += 1
+        members[d] = set(m)
+    return members
+
+
 def fetch_history(ticker: str, period: str) -> pd.DataFrame | None:
     df = yf.download(ticker, period=period, interval="1d", progress=False, auto_adjust=True)
     if df.empty:

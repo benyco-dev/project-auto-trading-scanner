@@ -9,6 +9,7 @@ from strategies import LegacyParams, RSI2Params, build_params, legacy_latest_sig
 from toss.exit_positions import exit_reason, ledger_cash_flow, open_positions
 from dashboard.report import build_report
 from toss.place_orders import select_candidates
+from scanner import sp500_members_at
 from weekly_ma.paper import decide
 from weekly_ma.strategy import add_signals, to_weekly
 
@@ -208,6 +209,16 @@ def test_ma40w_respects_slots_and_held():
     assert [b["ticker"] for b in buys] == ["U2"]          # 보유 종목 재매수 X, 슬롯 2개 초과 X
 
 
+def test_sp500_members_rewinds_changes():
+    # 2026-03에 NEW 편입 / OLD 편출 → 그 전 날짜엔 OLD가 있고 NEW가 없어야 한다.
+    ch = pd.DataFrame([{"date": pd.Timestamp("2026-03-02"), "added": "NEW", "removed": "OLD"},
+                       {"date": pd.Timestamp("2026-01-05"), "added": "BRK.B", "removed": float("nan")}])
+    m = sp500_members_at(["A", "NEW", "BRK-B"], ch, ["2025-12-31", "2026-02-27", "2026-06-30"])
+    assert m[pd.Timestamp("2026-06-30")] == {"A", "NEW", "BRK-B"}
+    assert m[pd.Timestamp("2026-02-27")] == {"A", "OLD", "BRK-B"}
+    assert m[pd.Timestamp("2025-12-31")] == {"A", "OLD"}             # BRK.B 표기도 맞춰서 되돌림
+
+
 if __name__ == "__main__":
     test_legacy_ignores_nan_disparity()
     test_rsi2_stop_below_entry()
@@ -224,4 +235,5 @@ if __name__ == "__main__":
     test_weekly_drops_unfinished_week()
     test_ma40w_buys_cross_up_and_sells_cross_down()
     test_ma40w_respects_slots_and_held()
+    test_sp500_members_rewinds_changes()
     print("all checks passed")

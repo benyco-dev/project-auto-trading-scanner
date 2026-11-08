@@ -6,6 +6,7 @@ weekly_ma/backtest.py
 자산은 매주 종가로 시가평가하므로 낙폭(MDD)이 원가 기준보다 정직하게 나온다.
 
   python -m weekly_ma.backtest --history 10y --capital 20000 --slots 5 10 20
+  python -m weekly_ma.backtest --point-in-time   # 각 시점의 실제 구성종목만 (생존편향 제거)
 """
 
 from __future__ import annotations
@@ -52,13 +53,20 @@ def main() -> None:
     ap.add_argument("--history", default="10y")
     ap.add_argument("--capital", type=float, default=20000)
     ap.add_argument("--slots", type=int, nargs="+", default=[5, 10, 20])
+    ap.add_argument("--point-in-time", action="store_true",
+                    help="진입 시점에 실제로 S&P500 구성종목이던 것만 산다 (빠진 종목 시세도 받는다)")
     ap.add_argument("--random-seeds", type=int, default=5, help="정렬 기준 대신 무작위 순서로 몇 번 돌릴지")
     args = ap.parse_args()
 
     import yfinance as yf
-    from scanner import fetch_sp500_tickers
+    from scanner import fetch_sp500_changes, fetch_sp500_tickers, sp500_members_at
 
     tickers = fetch_sp500_tickers()
+    members = None
+    if args.point_in_time:
+        weeks = pd.date_range(end=pd.Timestamp.today(), periods=int(args.history.rstrip("y")) * 52 + 1, freq="W-FRI")
+        members = sp500_members_at(tickers, fetch_sp500_changes(), weeks)
+        tickers = sorted(set().union(*members.values()))
     raw = yf.download(tickers, period=args.history, interval="1d", progress=False,
                       auto_adjust=True, group_by="ticker", threads=True)
     out = []
@@ -68,6 +76,12 @@ def main() -> None:
         if not tr.empty:
             out.append(tr.assign(ticker=t))
     trades = pd.concat(out).sort_values("entry_date").reset_index(drop=True)
+    if members is not None:
+        keys = pd.DatetimeIndex(sorted(members))
+        trades = trades[trades.entry_date >= keys[0].date()]
+        at = keys[keys.searchsorted(pd.to_datetime(trades.entry_date), side="right") - 1]  # 진입일 직전 주
+        trades = trades[[t in members[k] for t, k in zip(trades.ticker, at)]].reset_index(drop=True)
+        print(f"시점별 구성종목: 후보 티커 {len(tickers)}개 중 시세 있는 {len(out)}개")
     wc = raw.xs("Close", axis=1, level=1).resample("W-FRI").last().ffill()
 
     r = trades.return_pct
@@ -84,7 +98,9 @@ def main() -> None:
     print(f"\n비교: SPY 보유 총 {(spy.iloc[-1] / spy.iloc[0] - 1) * 100:.1f}% · "
           f"연 {((spy.iloc[-1] / spy.iloc[0]) ** (1 / years) - 1) * 100:.1f}% · "
           f"MDD {(spy / spy.cummax() - 1).min() * 100:.1f}%")
-    print("\n※ 현재 S&P500 구성종목 기준(생존편향 — 추세추종에 특히 유리하게 작용). 배당·세금·환전 미반영.")
+    print("\n※ " + ("시점별 구성종목 기준. 상장폐지로 시세가 없는 옛 종목은 빠져 있다." if members is not None
+                     else "현재 S&P500 구성종목 기준(생존편향 — 추세추종에 특히 유리하게 작용).")
+          + " 배당·세금·환전 미반영.")
 
 
 if __name__ == "__main__":
