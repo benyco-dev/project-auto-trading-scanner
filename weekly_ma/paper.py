@@ -90,7 +90,11 @@ def main() -> None:
         d = raw[t].dropna(subset=["Close"])
         if len(d) > MA_WEEKS * 5:
             weekly[t] = add_signals(to_weekly(d, asof=today))
-    print(f"[{STRATEGY}] {today} 기준 — 시세 {len(weekly)}/{len(tickers)}종목")
+    # 마지막 주봉이 가장 최근 주가 아닌 종목(거래정지·조회 누락)은 뺀다. 그대로 두면
+    # 몇 주 전 돌파를 이번 주 신호로 보고 매수한다.
+    latest = max(w.index[-1] for w in weekly.values())
+    weekly = {t: w for t, w in weekly.items() if w.index[-1] == latest}
+    print(f"[{STRATEGY}] {latest.date()} 주 마감 기준 — 시세 {len(weekly)}/{len(tickers)}종목")
 
     held = open_positions(args.orders_log)
     cash = args.capital + ledger_cash_flow(args.orders_log)
